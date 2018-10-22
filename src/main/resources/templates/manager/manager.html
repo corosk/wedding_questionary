@@ -1,0 +1,180 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Index</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>管理画面</title>
+    <!-- BootstrapのCSS読み込み -->
+    <link href="/css/bootstrap/bootstrap.min.css" rel="stylesheet"></link>
+    <!-- jQuery読み込み -->
+    <script src="/js/jquery-1.12.3.min.js"></script>
+    <!-- BootstrapのJS読み込み -->
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <script type="text/javascript">
+	// 画面ID
+	var vid = "00";
+
+	var requestObj = {};
+
+	// TODO テスト用に外だし
+	var ws;
+	
+    $(function(){
+    	var host = location.host;
+        ws = new WebSocket("wss://" + host + "/socket");
+        ws.onopen = function(){
+        	requestObj.type = 'connect';
+        	requestObj.value = '';
+        	requestObj.vid = vid;
+        	ws.send(JSON.stringify(requestObj));
+        };
+        ws.onclose = function(){
+        };
+        ws.onmessage = function(message){
+            var response = $.parseJSON(message.data);
+
+            // ボタンの新規接続
+			if (response.type == "connect") {
+				if (response.vid == "20") {
+					var template = $('#template').clone().show();
+	                template.attr('id', response.value.sessionId);
+	                template.attr('class', 'connection');
+	                template.find('.sessionId').text(response.value.sessionId);
+	                template.find('.answer').text('OFF');
+	                $("#connectionListView").prepend(template);
+
+	                $('#connectionCount').text("接続者数: " + response.value.connectionCount + "人")
+				}
+			}
+
+			// ボタンの新規接続
+			if (response.type == "connect") {
+				if (response.vid == "00") {
+					requestObj.type = 'sync';
+					requestObj.value = '';
+					requestObj.vid = vid;
+		            ws.send(JSON.stringify(requestObj));
+				}
+			}		
+            
+            // ボタン画面の接続切れ
+            if (response.type == "disConnect") {
+                if (response.vid == "20") {
+                	$('#' + response.value.sessionId).remove();
+                	$('#connectionCount').text("接続者数: " + response.value.connectionCount + "人")
+                }
+		    }
+
+            // 同期処理
+            if (response.type == "sync") {
+                $('.connection').remove();
+                $.each(response.value.connectionList, function() {
+                	var template = $('#template').clone().show();
+                    template.attr('id', this.sessionId);
+                    template.attr('class', 'connection');
+                    template.find('.sessionId').text(this.sessionId);
+                    if (this.answer) {
+                    	template.find('.answer').text('ON').css('color', 'red');
+                    } else {
+                    	template.find('.answer').text('OFF').css('color', 'black');
+                    }
+                    $("#connectionListView").prepend(template);
+                });
+
+                $('#connectionCount').text("接続者数: " + response.value.connectionCount + "人")
+            }
+
+            // 回答変更
+            if (response.type == "answer") {
+                var target = $('#' + response.value.sessionId).find('.answer');
+                if (response.value.answer) {
+                	target.text('ON').css('color', 'red');
+                } else {
+					target.text('OFF').css('color', 'black');
+                }
+            }
+
+            // 全クリア完了
+            if (response.type == "clear") {
+				$(".connection").each(function(){
+					$(this).find('.answer').text('OFF').css('color', 'black');
+				});
+            }
+
+            // スタート完了
+            if (response.type == "start") {
+				
+            }
+
+            // ストップ完了
+            if (response.type == "stop") {
+				
+            }
+        };
+        ws.onerror = function(event){
+            alert("接続に失敗しました。");
+        };
+        
+        $("#sync").on('click', function(){
+        	requestObj.type = 'sync';
+        	requestObj.value = '';
+        	requestObj.vid = vid;
+            ws.send(JSON.stringify(requestObj));
+            return false;
+        });
+        $("#clear").on('click', function(){
+        	requestObj.type = 'clear';
+        	requestObj.value = '';
+        	requestObj.vid = vid;
+            ws.send(JSON.stringify(requestObj));
+            return false;
+        });
+        $("#start").on('click', function(){
+        	requestObj.type = 'start';
+        	requestObj.value = '';
+        	requestObj.vid = vid;
+            ws.send(JSON.stringify(requestObj));
+            return false;
+        });
+
+        $("#stop").on('click', function(){
+        	requestObj.type = 'stop';
+        	requestObj.value = '';
+        	requestObj.vid = vid;
+            ws.send(JSON.stringify(requestObj));
+            return false;
+        });
+    });
+
+    </script>
+</head>
+<body>
+<h1>管理画面</h1>
+<h2 id="connectionCount">接続者数: 0人</h2><input id="sync" type="button" class="btn btn-sm btn-default" value="sync"/>
+<div class="container">
+    <input id="clear" type="button" class="btn btn-lg btn-default" style="width: 25%" value="clear"/>
+    <input id="start" type="button" class="btn btn-lg btn-warning" style="width: 25%" value="start"/>
+    <input id="stop" type="button" class="btn btn-lg btn-danger" style="width: 25%; display: none;" value="stop"/>
+</div>
+<div class="container">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>SessionID</th>
+            <th>回答</th>
+        </tr>
+        </thead>
+        <tbody id="connectionListView">
+        <tr scope="row" style="display:none" id="template">
+            <td class="no">1</td>
+            <td class="sessionId">111.111.111.111</td>
+            <td class="answer">0</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

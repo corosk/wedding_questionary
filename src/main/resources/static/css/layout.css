@@ -1,0 +1,130 @@
+@CHARSET "UTF-8";
+
+img {
+    width: 100%;
+}
+
+.buttonS{
+	margin-top:350px;
+}
+
+/* TOP画面の背景画像 */
+#top{
+	/* 画像ファイルの指定 */
+	background-image: url(/images/background_full.svg);
+	background-repeat: repeat;
+}
+
+/* TOP画面の背景画像 */
+#input{
+	/* 画像ファイルの指定 */
+	background-image: url(/images/background_full.svg);
+	background-repeat: repeat;
+}
+
+/* 結果表示画面の背景画像 */
+#result{
+	/* 画像ファイルの指定 */
+	background-image: url(/images/background_full.svg);
+	background-repeat: repeat;
+}
+
+body{
+  /* 画像を常に天地左右の中央に配置 */
+  background-position: center center;
+   
+  /* 画像をタイル状に繰り返し表示しない */
+  background-repeat: no-repeat;
+   	
+  /* コンテンツの高さが画像の高さより大きい時、動かないように固定 */
+  background-attachment: fixed;
+   
+  /* 表示するコンテナの大きさに基づいて、背景画像を調整 */
+  background-size: cover;
+   
+  /* 背景画像が読み込まれる前に表示される背景のカラー */
+  background-color: #464646;
+}
+
+/* 結果表示画面の背景画像 */
+.input_question{
+	/* 画像ファイルの指定 */
+	background-image: url(/images/background.svg);
+	font-size:60px;
+	margin-top:20px;
+	width: 100%;
+	text-align: center;
+}
+
+.logo{
+	padding: 15px 0px 0px 0px;
+}
+
+.mgt-5{
+	margin-top: 5%;
+}
+
+.mgt-10{
+	margin-top: 10%;
+}
+
+.mgt-20{
+	margin-top: 20%;
+}
+
+.mgt-30{
+	margin-top: 30%;
+}
+
+.mgt-40{
+	margin-top: 40%;
+}
+
+.mgt-50{
+	margin-top: 50%;
+}
+
+.bold{
+	font-weight: bolder;
+}
+
+.w30{
+	width:30%;
+}
+
+.w40{
+	width:40%;
+}
+
+.w60{
+	width:60%;
+}
+
+.w80{
+	width:80%;
+}
+
+.button_on{
+	background:url(/images/button.svg) 3px 10px no-repeat;
+	background-size: 400px auto;	
+	width: 200px;
+	height: 200px;
+	margin: 0 auto 0 auto;
+}
+
+.button_off{
+	background:url(/images/button.svg) -193px 10px no-repeat;
+	background-size: 400px auto;	
+	width: 200px;
+	height: 200px;
+	margin: 0 auto 0 auto;
+}
+
+.lock_off{
+	font-weight: bold;
+	display:none;
+}
+
+.lock_on{
+	font-weight: bold;
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tools</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script src="/js/jquery-1.12.3.min.js"></script>
+<link href="/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+<link href="/css/layout.css" rel="stylesheet" />
+<script src="/js/bootstrap/bootstrap.min.js"></script>
+<script src="/js/socket.js"></script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+$(function(){
+	var onMessage = function(result){
+        var img = $("#button_img");
+		if (result.type === 'answer') {
+
+			var answer = result.value.answer;
+
+	        if(img.hasClass("button_off") && answer === true){
+	            img.removeClass("button_off");
+	            img.addClass("button_on");
+	        } else if (img.hasClass("button_on") && answer === false) {
+	            img.addClass("button_off");
+	            img.removeClass("button_on");
+	        }
+
+	        $('#answer').val(answer);
+	        img.css("pointer-events","");
+	        $("#button_lock").removeClass("lock_on").addClass("lock_off");
+		}
+
+		if (result.type === "clear") {
+			img.addClass("button_off");
+            img.removeClass("button_on");
+            $('#answer').val(false);
+            img.css("pointer-events","");
+            $("#button_lock").removeClass("lock_on").addClass("lock_off");
+	    }
+		
+		if(result.type == "stop"){
+			$("#button_lock").addClass("lock_on").removeClass("lock_off");
+		}
+	};
+	var reconnect = function() {
+		$("#reconnect-btn").attr("href", location.href);
+		$('.modal').modal('show');
+	};
+	
+	entertainmentSocket.create('20', onMessage, reconnect);
+	
+	$("#button_img").click(function(){
+		$(this).css("pointer-events","none");
+		$("#button_lock").removeClass("lock_off").addClass("lock_on");
+
+		var answer = $("#answer").val();
+		var request = {
+    		type: 'answer',
+    		value: answer,
+    		vid: '20'
+		}
+		entertainmentSocket.send(JSON.stringify(request));
+		
+		return false;
+	});
+});
+/*]]>*/
+</script>
+<!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+</head>
+<body id="input">
+    <header class="container-fluid bHead">
+        <div class="container"></div>
+    </header>
+    <div class="container-fluid bBody">
+        <div class="container">
+            <div class="main">
+            	<div class="text-center">
+					<img class="logo w80" src="/images/logo_upper.svg"/>
+				</div>
+                <div class="text-center">
+                	<div id="button_img" class="button_off"></div>
+                	<div id="button_lock" class="lock_off">ボタンがロックされています。</div>
+	                <form id="form" action="#">
+	                   <input type="hidden" value="false" id="answer"/>
+	                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center container-fluid bFoot">
+        <div class="container"></div>
+    </footer>
+    <div th:include="parts/reconnect_modal::recconect-modal">
+    </div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>結果画面</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="/js/jquery-1.12.3.min.js"></script>
+    <link href="/css/bootstrap/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/odometer-theme-car.css" rel="stylesheet"/>
+    <link href="/css/landing-page.css" rel="stylesheet"/>
+    <link href="/css/layout.css" rel="stylesheet"/>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <script src="/js/odometer.min.js"></script>
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body id="result">
+<audio id="audio" src="/music/telephone_bgm.mp3"></audio>
+<div class="container-fluid bBody">
+    <div class="container">
+        <div class="main">
+            <div class="text-center">
+                <img class="logo w30" src="/images/logo_upper.svg"/><br/>
+            </div>
+            <div class="text-center">
+                <div>
+                    <input class="input_question" type="text"/>
+                </div>
+                <div class="number-container">
+                    <div class="odometer-container mgt-5">
+                        <div class="odometer odometer-theme-car"></div>
+                        <div id="connectionCount"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+	/*<![CDATA[*/
+	// スロット要素
+	var od_click;
+	// スロットの作成
+	var el_click = document.querySelector('.odometer');
+	od_click = new Odometer({
+	  el: el_click,
+	  value: 000,
+	  format: 'ddd',
+	  duration: 10000
+	});
+	//音楽要素
+	var bgm = document.getElementById("audio");
+	
+	// タイマーID
+	var timer_id;
+	
+	// 画面ID
+	var vid = "10";
+
+	var requestObj = {};
+
+	// Websocket
+	var ws;
+	
+    $(function(){
+    	var host = location.host;
+        ws = new WebSocket("wss://" + host + "/socket");
+        ws.onopen = function(){
+        	requestObj.type = 'connect';
+        	requestObj.value = '';
+        	requestObj.vid = vid;
+        	ws.send(JSON.stringify(requestObj));
+        };
+        ws.onclose = function(){
+        };
+        ws.onmessage = function(message){
+            var response = $.parseJSON(message.data);
+
+            // ボタンの新規接続
+			if (response.type == "connect") {
+				if (response.vid == "20") {
+	                $('#connectionCount').text("参加者: " + response.value.connectionCount + "人")
+				}
+			}
+            
+			// ボタンの新規接続
+			if (response.type == "connect") {
+				if (response.vid == "10") {
+					requestObj.type = 'sync';
+					requestObj.value = '';
+					requestObj.vid = vid;
+		            ws.send(JSON.stringify(requestObj));
+				}
+			}
+			
+            // ボタン画面の接続切れ
+            if (response.type == "disConnect") {
+                if (response.vid == "20") {
+                	$('#connectionCount').text("参加者: " + response.value.connectionCount + "人")
+                }
+		    }
+            
+            // 全クリア
+            if (response.type == "clear") {
+            	od_click.update(0);
+            	$(".input_question").prop("value","")
+            }
+            
+            // ルーレットスタート
+            if (response.type == "start") {
+                if (response.vid == "00") {
+                	// ストップされるまで1秒毎にルーレット回転
+            		timer_id = setInterval(function(){
+            			// 100 - 999の間の値をランダムに生成
+            	    	var val = Math.round( Math.random()*(999-100)+100);
+            	    	od_click.update(val);
+            	    },500);
+            		bgm.play();
+            		setTimeout( function () {
+    					requestObj.type = 'stop';
+    					requestObj.value = '';
+    					requestObj.vid = vid;
+    		            ws.send(JSON.stringify(requestObj));
+            		} , 6000 );
+                }
+		    }
+            
+            // STOP処理
+            if(response.type == "stop"){
+    			clearInterval( timer_id );
+    			od_click.update(response.value.result);
+            }
+			
+			// 同期処理
+            if (response.type == "sync") {
+            	$('#connectionCount').text("参加者: " + response.value.connectionCount + "人");
+            }
+        };
+    });
+	/*]]>*/
+
+
+</script>
+</body>
+</html>
